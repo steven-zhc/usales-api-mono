@@ -9,10 +9,11 @@ ratpack {
                     byMethod {
                         get {
                             def name = request.queryParams.name
-                            render "get category: $name"
+                            render "get category: [name:$name]"
                         }
                         post {
                             def body = request.body
+                            render "post category"
                         }
                     }
                 }
@@ -29,10 +30,10 @@ ratpack {
                 json {
                     byMethod {
                         get {
-
+                            render "get category/$cid"
                         }
                         patch {
-
+                            render "patch category/$cid"
                         }
                     }
                 }
@@ -50,9 +51,13 @@ ratpack {
                         get {
                             def name = request.queryParams.name
                             def cid = request.queryParams.cid
+
+                            render "get product: [name:$name][cid:$cid]"
                         }
                         post {
+                            def body = request.body
 
+                            render "post product"
                         }
                     }
                 }
@@ -66,10 +71,10 @@ ratpack {
                 json {
                     byMethod {
                         get {
-
+                            render "get product/$pid"
                         }
                         patch {
-
+                            render "patch product/$pid"
                         }
                     }
                 }
@@ -83,9 +88,11 @@ ratpack {
                         get {
                             def name = request.queryParams.name
                             def status = request.queryParams.status
+
+                            render "get order: [name:$name] [status:$status]"
                         }
                         post {
-
+                            render "post order"
                         }
                     }
                 }
@@ -99,42 +106,48 @@ ratpack {
                 json {
                     byMethod {
                         get {
-
+                            render "get order/$oid"
                         }
                         patch {
-
+                            render "patch order/$oid"
                         }
                     }
                 }
             }
+        }
 
-            path("line") {
-                byContent {
-                    json {
-                        byMethod {
-                            get {
+        path("order/:oid/line") {
+            def oid = pathTokens['oid']
 
-                            }
-                            post {
-
-                            }
+            byContent {
+                json {
+                    byMethod {
+                        get {
+                            render "get order/$oid/line"
+                        }
+                        post {
+                            render "post order/$oid/line"
                         }
                     }
                 }
             }
+        }
 
-            path("line/:lid") {
-                def lid = pathTokens['lid']
+        path("order/:oid/line/:lid") {
+            def oid = pathTokens['oid']
+            def lid = pathTokens['lid']
 
-                byContent {
-                    json {
-                        byMethod {
-                            patch {
-
-                            }
-                            delete {
-
-                            }
+            byContent {
+                json {
+                    byMethod {
+                        get {
+                            render "get order/$oid/line/$lid"
+                        }
+                        patch {
+                            render "patch order/$oid/line/$lid"
+                        }
+                        delete {
+                            render "delete order/$oid/line/$lid"
                         }
                     }
                 }
