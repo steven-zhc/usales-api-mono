@@ -6,7 +6,6 @@ import ratpack.groovy.handling.GroovyChainAction
  * Created by steven on 28/12/2016.
  */
 class ProductEndpoint extends GroovyChainAction {
-
     @Override
     void execute() throws Exception {
         path {

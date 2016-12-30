@@ -1,7 +1,12 @@
 package org.usales.api.pm
 
 import groovy.util.logging.Slf4j
+import org.usales.api.common.Message
 import ratpack.groovy.handling.GroovyChainAction
+import ratpack.jackson.Jackson
+
+import javax.inject.Inject
+
 
 /**
  * Created by hzhang on 12/28/2016.
@@ -9,25 +14,32 @@ import ratpack.groovy.handling.GroovyChainAction
 @Slf4j
 class CategoryEndpoint extends GroovyChainAction {
 
+    private CategoryRepository repository
+
+    @Inject
+    CategoryEndpoint(CategoryRepository repository) {
+        this.repository = repository
+    }
+
     @Override
     void execute() throws Exception {
         path {
-            byContent {
-                json {
-                    byMethod {
-                        get {
-                            def name = request.queryParams.name
-                            render "get category: [name:$name]"
-                        }
-                        post {
-                            def body = request.body
-                            render "post category"
-                        }
+            byMethod {
+                get {
+                    def name = request.queryParams.name
+                    repository
+                            .findByName(name)
+                            .then { List<Category> list ->
+                        render Jackson.json(list)
                     }
                 }
-                noMatch {
-                    response.status 400
-                    render "negotiation not possible."
+                post {
+                    parse(Jackson.fromJson(CreateCategoryCommand)).flatMap { cmd ->
+                        Category c = new Category(name: cmd.name)
+                        repository.create(c)
+                    }.then { Category c ->
+                        render Jackson.json(c)
+                    }
                 }
             }
         }
@@ -35,26 +47,31 @@ class CategoryEndpoint extends GroovyChainAction {
         prefix(":cid") {
             all {
                 String cid = allPathTokens["cid"]
-                next()
+                repository.find(cid).onNull {
+                    render new Message(status: 404, message: "Cannot find Category $cid.")
+                }.then { Category category ->
+                    next(single(category))
+                }
             }
-
             path {
-                byContent {
-                    json {
-                        byMethod {
-                            get {
-                                String cid = allPathTokens["cid"]
-                                render "get category/$cid"
-                            }
-                            patch {
-                                String cid = allPathTokens["cid"]
-                                render "patch category/$cid"
-                            }
-                        }
+                byMethod {
+                    get {
+                        def c = get(Category)
+
+                        render Jackson.json(c)
                     }
-                    noMatch {
-                        response.status 400
-                        render "negotiation not possible."
+
+                    patch {
+                        Category c = get(Category)
+
+                        parse(Jackson.fromJson(CreateCategoryCommand)).flatMap { cmd ->
+                            if (cmd.name) {
+                                c.name = cmd.name
+                            }
+                            repository.save(c)
+                        }.then {
+                            render it
+                        }
                     }
                 }
             }
