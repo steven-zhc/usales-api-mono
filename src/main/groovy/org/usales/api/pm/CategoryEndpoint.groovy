@@ -29,12 +29,11 @@ class CategoryEndpoint extends GroovyChainAction {
                     def name = request.queryParams.name
                     if (name) {
                         repository
-                                .all()
+                                .findByName(name)
                                 .then { render Jackson.json(it) }
-
                     } else {
                         repository
-                                .findByName(name)
+                                .all()
                                 .then { render Jackson.json(it) }
                     }
                 }

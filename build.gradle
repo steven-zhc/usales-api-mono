@@ -15,5 +15,8 @@ repositories {
 }
 
 dependencies {
+  compile "mysql:mysql-connector-java:5.1.29"
+  compile ratpack.dependency('hikari')
+
   runtime "org.slf4j:slf4j-simple:1.7.21"
 }
