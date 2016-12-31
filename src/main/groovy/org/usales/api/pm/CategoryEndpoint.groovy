@@ -27,15 +27,20 @@ class CategoryEndpoint extends GroovyChainAction {
             byMethod {
                 get {
                     def name = request.queryParams.name
-                    repository
-                            .findByName(name)
-                            .then { List<Category> list ->
-                        render Jackson.json(list)
+                    if (name) {
+                        repository
+                                .all()
+                                .then { render Jackson.json(it) }
+
+                    } else {
+                        repository
+                                .findByName(name)
+                                .then { render Jackson.json(it) }
                     }
                 }
                 post {
-                    parse(Jackson.fromJson(CreateCategoryCommand)).flatMap { cmd ->
-                        Category c = new Category(name: cmd.name)
+                    parse(Jackson.fromJson(CreateCategoryCommand)).flatMap {
+                        Category c = new Category(name: it.name)
                         repository.create(c)
                     }.then {
                         render it
