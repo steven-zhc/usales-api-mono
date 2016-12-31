@@ -11,7 +11,7 @@ interface CategoryRepository {
 
     Promise<Category> save(Category category)
 
-    Promise<Category> find(String cid)
+    Promise<Category> find(Long cid)
 
     Promise<List<Category>> findByName(String name)
 

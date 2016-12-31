@@ -50,7 +50,8 @@ class CategoryEndpoint extends GroovyChainAction {
 
         prefix(":cid") {
             all {
-                String cid = allPathTokens["cid"]
+                Long cid = allPathTokens.asLong("cid")
+
                 repository.find(cid).onNull {
                     render new Message(status: 404, message: "Cannot find Category $cid.")
                 }.then { Category category ->

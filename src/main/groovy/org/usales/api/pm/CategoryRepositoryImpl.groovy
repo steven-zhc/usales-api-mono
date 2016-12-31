@@ -20,27 +20,44 @@ class CategoryRepositoryImpl implements CategoryRepository {
 
     @Override
     Promise<Category> create(Category category) {
-        return Promise.value(new Category(cid: 1, name: "toy"))
+        Blocking.get {
+            sql.executeInsert("insert into category(name, version) values ($category.name, 0)", ['id'])
+        }.map {
+            category.cid = it[0][0] as long
+            category
+        }
     }
 
     @Override
     Promise<Category> save(Category category) {
-        return Promise.value(new Category(cid: 1, name: "toy"))
+        Blocking.get {
+            sql.executeUpdate("update category set name=$category.name where id=$category.id")
+        }.then {
+            category
+        }
     }
 
     @Override
-    Promise<Category> find(String cid) {
-        return Promise.value(new Category(cid: 1, name: "toy"))
+    Promise<Category> find(Long cid) {
+        Blocking.get {
+            sql.firstRow("select * from category where id = $cid")
+        }.then {
+            def id = (long) it["id"]
+            def n = it["name"]
+            new Category(cid: id, name: n)
+        }
     }
 
     @Override
     Promise<List<Category>> findByName(String name) {
-        List list = [
-                new Category(cid: 1, name: "toy"),
-                new Category(cid: 2, name: "beauty")
-        ]
-
-        return Promise.value(list)
+        Blocking.get {
+            String str = "%$name%"
+            sql.rows("select * from category where name like $str").collect {
+                def id = (long) it["id"]
+                def n = it["name"]
+                new Category(cid: id, name: n)
+            }
+        }
     }
 
     @Override
