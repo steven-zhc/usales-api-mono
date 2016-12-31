@@ -37,8 +37,8 @@ class CategoryEndpoint extends GroovyChainAction {
                     parse(Jackson.fromJson(CreateCategoryCommand)).flatMap { cmd ->
                         Category c = new Category(name: cmd.name)
                         repository.create(c)
-                    }.then { Category c ->
-                        render Jackson.json(c)
+                    }.then {
+                        render it
                     }
                 }
             }
@@ -55,20 +55,19 @@ class CategoryEndpoint extends GroovyChainAction {
             }
             path {
                 byMethod {
-                    get {
-                        def c = get(Category)
+                    def category = get(Category)
 
-                        render Jackson.json(c)
+                    get {
+                        render category
                     }
 
                     patch {
-                        Category c = get(Category)
 
                         parse(Jackson.fromJson(CreateCategoryCommand)).flatMap { cmd ->
                             if (cmd.name) {
-                                c.name = cmd.name
+                                category.name = cmd.name
                             }
-                            repository.save(c)
+                            repository.save(category)
                         }.then {
                             render it
                         }

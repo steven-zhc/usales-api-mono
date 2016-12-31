@@ -9,9 +9,10 @@ import com.google.inject.Scopes
 class ProductModule extends AbstractModule {
     @Override
     protected void configure() {
-        bind(CategoryRepository.class).to(CategoryRepositoryImpl.class).in(Scopes.SINGLETON)
+        bind(CategoryRepository).to(CategoryRepositoryImpl).in(Scopes.SINGLETON)
+        bind(CategoryEndpoint).in(Scopes.SINGLETON)
+        bind(CategoryRender).in(Scopes.SINGLETON)
 
-        bind(CategoryEndpoint.class).in(Scopes.SINGLETON)
         bind(ProductEndpoint).in(Scopes.SINGLETON)
 
     }
