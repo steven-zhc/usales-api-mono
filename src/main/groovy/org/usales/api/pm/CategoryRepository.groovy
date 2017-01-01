@@ -18,7 +18,6 @@ class CategoryRepository {
         this.sql = sql
     }
 
-    @Override
     Promise<Category> create(Category category) {
         Blocking.get {
             sql.executeInsert("insert into category(name, version) values ($category.name, 0)", ['id'])
@@ -28,7 +27,6 @@ class CategoryRepository {
         }
     }
 
-    @Override
     Promise<Category> save(Category category) {
         Blocking.get {
             sql.executeUpdate("update category set name=$category.name where id=$category.id")
@@ -37,8 +35,7 @@ class CategoryRepository {
         }
     }
 
-    @Override
-    Promise<Category> find(Long cid) {
+    Promise<Category> get(Long cid) {
         Blocking.get {
             sql.firstRow("select * from category where id = $cid")
         }.then {
@@ -48,7 +45,6 @@ class CategoryRepository {
         }
     }
 
-    @Override
     Promise<List<Category>> findByName(String name) {
         Blocking.get {
             String str = "%$name%"
@@ -60,7 +56,6 @@ class CategoryRepository {
         }
     }
 
-    @Override
     Promise<List<Category>> all() {
         Blocking.get {
             sql.rows("select * from category").collect {

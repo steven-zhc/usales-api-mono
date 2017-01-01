@@ -52,7 +52,7 @@ class CategoryEndpoint extends GroovyChainAction {
             all {
                 Long cid = allPathTokens.asLong("cid")
 
-                repository.find(cid).onNull {
+                repository.get(cid).onNull {
                     render new Message(status: 404, message: "Cannot find Category $cid.")
                 }.then { Category category ->
                     next(single(category))
