@@ -2,10 +2,19 @@ package org.usales.api.om
 
 import ratpack.groovy.handling.GroovyChainAction
 
+import javax.inject.Inject
+
 /**
  * Created by steven on 28/12/2016.
  */
 class OrderEndpoint extends GroovyChainAction {
+
+    private OrderRepository repository
+
+    @Inject
+    OrderEndpoint(OrderRepository repository) {
+        this.repository = repository
+    }
 
     @Override
     void execute() throws Exception {

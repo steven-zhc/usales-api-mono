@@ -1,5 +1,6 @@
 import org.usales.api.common.CommonModule
 import org.usales.api.om.OrderEndpoint
+import org.usales.api.om.OrderModule
 import org.usales.api.pm.CategoryEndpoint
 import org.usales.api.pm.ProductEndpoint
 import org.usales.api.pm.ProductModule
@@ -21,15 +22,17 @@ ratpack {
 
         module CommonModule
         module ProductModule
+        module OrderModule
     }
 
     handlers { CategoryEndpoint categoryEndpoint,
-               ProductEndpoint productEndpoint ->
+               ProductEndpoint productEndpoint,
+               OrderEndpoint orderEndpoint ->
 
         prefix("category", categoryEndpoint)
 
         prefix("product", productEndpoint)
 
-        prefix("order", new OrderEndpoint())
+        prefix("order", orderEndpoint)
     }
 }
