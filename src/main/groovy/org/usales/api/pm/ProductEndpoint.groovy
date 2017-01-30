@@ -28,9 +28,10 @@ class ProductEndpoint extends GroovyChainAction {
                     def name = request.queryParams.name
                     def cid = request.queryParams.cid as Long
 
-                    repository.find(name, cid)
+                    repository
+                            .find(name, cid)
+                            .then { Jackson.json(it) }
 
-                    render "get product: [name:$name][cid:$cid]"
                 }
                 post {
                     parse(Jackson.fromJson(CreateProductCommand)).flatMap {

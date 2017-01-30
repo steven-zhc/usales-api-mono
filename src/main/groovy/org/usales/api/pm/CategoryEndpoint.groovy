@@ -58,9 +58,9 @@ class CategoryEndpoint extends GroovyChainAction {
                     next(single(category))
                 }
             }
-            path {
+            path { ctx ->
                 byMethod {
-                    def category = get(Category)
+                    def category = ctx.get(Category)
 
                     get {
                         render category
