@@ -2,7 +2,7 @@ package org.usales.api.common
 
 import ratpack.groovy.handling.GroovyContext
 import ratpack.groovy.render.GroovyRendererSupport
-import ratpack.jackson.Jackson;
+import ratpack.jackson.Jackson
 
 /**
  * Created by steven on 28/12/2016.

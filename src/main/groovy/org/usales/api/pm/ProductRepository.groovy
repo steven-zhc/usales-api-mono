@@ -3,7 +3,6 @@ package org.usales.api.pm
 import groovy.sql.Sql
 import ratpack.exec.Blocking
 import ratpack.exec.Promise
-import ratpack.func.Block
 
 import javax.inject.Inject
 
