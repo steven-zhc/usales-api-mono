@@ -16,3 +16,21 @@ class UpdateOrderCommand {
     Float payment
     String note
 }
+
+class UpdateOrderLineCommand {
+
+    Integer q
+    String note
+    String model
+
+    UpdateLineBodyCommand purchase
+    UpdateLineBodyCommand sell
+
+}
+
+class UpdateLineBodyCommand {
+    Float p
+    Float t
+    Float s
+    Float d
+}

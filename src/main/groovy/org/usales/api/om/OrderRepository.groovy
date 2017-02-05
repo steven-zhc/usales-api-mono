@@ -32,6 +32,10 @@ class OrderRepository {
 
     }
 
+    Promise<OrderLine> save(OrderLine line) {
+
+    }
+
     Promise<OrderLine> addOrderLine(Order order, OrderLine line) {
 
     }

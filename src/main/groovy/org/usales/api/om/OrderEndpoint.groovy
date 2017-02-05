@@ -136,9 +136,37 @@ class OrderEndpoint extends GroovyChainAction {
                                 render line
                             }
                             patch {
-                                String oid = allPathTokens['oid']
-                                String lid = allPathTokens['lid']
-                                render "patch order/$oid/line/$lid"
+                                parse(Jackson.fromJson(UpdateOrderLineCommand)).flatMap { cmd ->
+
+                                    line.q = cmd.q ?: line.q
+                                    line.note = cmd.note ?: line.note
+                                    line.model = cmd.model ?: line.model
+
+                                    if (cmd.purchase) {
+                                        def p = line.purchase
+
+                                        p.p = cmd.purchase.p ?: p.p
+                                        p.t = cmd.purchase.t ?: p.t
+                                        p.s = cmd.purchase.s ?: p.s
+                                        p.d = cmd.purchase.d ?: p.d
+                                    }
+
+                                    if (cmd.sell) {
+                                        def s = line.sell
+
+                                        s.p = cmd.sell.p ?: s.p
+                                        s.t = cmd.sell.t ?: s.t
+                                        s.s = cmd.sell.s ?: s.s
+                                        s.d = cmd.sell.d ?: s.d
+                                    }
+
+                                    repository.save(line)
+
+                                }.then {
+                                    render it
+                                }
+
+
                             }
                             delete {
                                 repository.deleteOrderLine(order, line)
