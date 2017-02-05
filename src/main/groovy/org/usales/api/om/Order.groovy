@@ -4,6 +4,9 @@ package org.usales.api.om
  * Created by steven on 01/01/2017.
  */
 class Order {
+
+    static final int ORDER_STATUS_INQUIRE = 1
+
     Long oid
     Integer status
 
@@ -21,6 +24,7 @@ class OrderLine {
 
     Long pid
     Integer q
+    String model
     String note
     Float total
     Float profit

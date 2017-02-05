@@ -1,6 +1,8 @@
 package org.usales.api.om
 
+import org.usales.api.common.Message
 import ratpack.groovy.handling.GroovyChainAction
+import ratpack.jackson.Jackson
 
 import javax.inject.Inject
 
@@ -19,18 +21,30 @@ class OrderEndpoint extends GroovyChainAction {
     @Override
     void execute() throws Exception {
         path {
-            byContent {
-                json {
-                    byMethod {
-                        get {
-                            def name = request.queryParams.name
-                            def status = request.queryParams.status
+            byMethod {
+                get {
+                    def name = request.queryParams.name
+                    def status = request.queryParams.status
 
-                            render "get order: [name:$name] [status:$status]"
-                        }
-                        post {
-                            render "post order"
-                        }
+                    repository.find(name, status)
+                            .then { render Jackson.json(it) }
+
+                }
+                post {
+                    parse(Jackson.fromJson(CreateOrderCommand)).flatMap { ocmd ->
+                        List<OrderLine> lines = ocmd.lines.collect { lcmd ->
+                            LineBody p = new LineBody(p: lcmd.purchase.p, t: lcmd.purchase.t, s: lcmd.purchase.s, d: lcmd.purchase.d)
+                            LineBody s = new LineBody(p: lcmd.sell.p, t: lcmd.sell.t, s: lcmd.sell.s, d: lcmd.sell.d)
+
+                            new OrderLine(pid: lcmd.pid, q: lcmd.q, note: lcmd.note, model: lcmd.model, purchase: p, sell: s)
+
+                        }.asList()
+
+                        Order order = new Order(note: ocmd.note, status: Order.ORDER_STATUS_INQUIRE, lines: lines)
+
+                        repository.create(order)
+                    }.then {
+                        render it
                     }
                 }
             }
@@ -38,71 +52,96 @@ class OrderEndpoint extends GroovyChainAction {
 
         prefix(":oid") {
             all {
-                String oid = allPathTokens['oid']
-                next()
+                Long oid = allPathTokens.asLong("oid")
+
+                repository.get(oid).onNull {
+                    render new Message(status: 404, message: "Cannot find Order $oid.")
+                }.then { Order order ->
+                    next(single(order))
+                }
+
             }
 
-            path {
-                byContent {
-                    json {
-                        byMethod {
-                            get {
-                                String oid = allPathTokens['oid']
-                                render "get order/$oid"
-                            }
-                            patch {
-                                String oid = allPathTokens['oid']
-                                render "patch order/$oid"
-                            }
+            path { ctx ->
+                byMethod {
+                    def order = ctx.get(Order)
+
+                    get {
+                        render order
+                    }
+                    patch {
+
+                        parse(Jackson.fromJson(UpdateOrderCommand)).flatMap { cmd ->
+
+                            order.status = cmd.status ?: order.status
+                            order.deliverFee = cmd.deliverFee ?: order.deliverFee
+                            order.deliverDate = cmd.deliverDate ?: order.deliverDate
+                            order.trackingNo = cmd.trackingNo ?: order.trackingNo
+                            order.payment = cmd.payment ?: order.payment
+                            order.note = cmd.note ?: order.note
+
+                            repository.save(order)
+                        }.then {
+                            render it
                         }
                     }
                 }
             }
 
             prefix("line") {
-                path {
-                    byContent {
-                        json {
-                            byMethod {
-                                get {
-                                    String oid = allPathTokens['oid']
-                                    render "get order/$oid/line"
-                                }
-                                post {
-                                    String oid = allPathTokens['oid']
-                                    render "post order/$oid/line"
-                                }
+                path { ctx ->
+                    byMethod {
+                        Order order = ctx.get(Order)
+
+                        get {
+                            render Jackson.json(order.lines)
+                        }
+                        post {
+                            parse(Jackson.fromJson(CreateOrderLineCommand)).flatMap { cmd ->
+
+                                LineBody p = new LineBody(p: cmd.purchase.p, t: cmd.purchase.t, s: cmd.purchase.s, d: cmd.purchase.d)
+                                LineBody s = new LineBody(p: cmd.sell.p, t: cmd.sell.t, s: cmd.sell.s, d: cmd.sell.d)
+
+                                OrderLine l = new OrderLine(pid: cmd.pid, q: cmd.q, note: cmd.note, model: cmd.model, purchase: p, sell: s)
+
+                                repository.addOrderLine(order, l)
+                            }.then {
+                                render it
                             }
+
                         }
                     }
                 }
 
                 prefix(":lid") {
-                    all {
-                        String lid = allPathTokens['lid']
-                        next()
+                    all { ctx ->
+
+                        Order order = ctx.get(Order)
+                        Long lid = allPathTokens.asLong("lid")
+                        OrderLine line = order.lines.find { it.lid == lid }
+
+                        if (line) {
+                            next(single(line))
+                        } else {
+                            render new Message(status: 404, message: "Cannot find order line $lid.")
+                        }
                     }
 
-                    path {
-                        byContent {
-                            json {
-                                byMethod {
-                                    get {
-                                        String oid = allPathTokens['oid']
-                                        String lid = allPathTokens['lid']
-                                        render "get order/$oid/line/$lid"
-                                    }
-                                    patch {
-                                        String oid = allPathTokens['oid']
-                                        String lid = allPathTokens['lid']
-                                        render "patch order/$oid/line/$lid"
-                                    }
-                                    delete {
-                                        String oid = allPathTokens['oid']
-                                        String lid = allPathTokens['lid']
-                                        render "delete order/$oid/line/$lid"
-                                    }
-                                }
+                    path { ctx ->
+                        byMethod {
+                            def order = ctx.get(Order)
+                            def line  = ctx.get(OrderLine)
+
+                            get {
+                                render line
+                            }
+                            patch {
+                                String oid = allPathTokens['oid']
+                                String lid = allPathTokens['lid']
+                                render "patch order/$oid/line/$lid"
+                            }
+                            delete {
+                                repository.deleteOrderLine(order, line)
                             }
                         }
                     }

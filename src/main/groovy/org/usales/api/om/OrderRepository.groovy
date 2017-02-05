@@ -16,7 +16,7 @@ class OrderRepository {
         this.sql = sql
     }
 
-    Promise<List<Order>> get(Long id) {
+    Promise<Order> get(Long id) {
 
     }
 
@@ -32,12 +32,11 @@ class OrderRepository {
 
     }
 
-    Promise<OrderLine> getLine(Long id) {
+    Promise<OrderLine> addOrderLine(Order order, OrderLine line) {
 
     }
 
-    Promise<OrderLine> add(Order order, OrderLine) {
+    void deleteOrderLine(Order order, OrderLine line) {
 
     }
-
 }
