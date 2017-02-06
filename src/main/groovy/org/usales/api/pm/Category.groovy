@@ -6,4 +6,9 @@ package org.usales.api.pm
 class Category {
     Long cid
     String name
+
+    @Override
+    String toString() {
+        return """Category{cid=$cid, name='$name'}"""
+    }
 }

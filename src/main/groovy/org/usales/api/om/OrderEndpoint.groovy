@@ -41,6 +41,7 @@ class OrderEndpoint extends GroovyChainAction {
                         }.asList()
 
                         Order order = new Order(note: ocmd.note, status: Order.ORDER_STATUS_INQUIRE, lines: lines)
+                        order.settle()
 
                         repository.create(order)
                     }.then {
@@ -80,6 +81,8 @@ class OrderEndpoint extends GroovyChainAction {
                             order.payment = cmd.payment ?: order.payment
                             order.note = cmd.note ?: order.note
 
+                            order.settle()
+
                             repository.save(order)
                         }.then {
                             render it
@@ -104,7 +107,8 @@ class OrderEndpoint extends GroovyChainAction {
 
                                 OrderLine l = new OrderLine(pid: cmd.pid, q: cmd.q, note: cmd.note, model: cmd.model, purchase: p, sell: s)
 
-                                repository.addOrderLine(order, l)
+                                order.addOrderLine(l)
+                                repository.create(order, l)
                             }.then {
                                 render it
                             }

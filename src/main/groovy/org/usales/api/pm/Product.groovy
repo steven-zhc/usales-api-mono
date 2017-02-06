@@ -13,4 +13,10 @@ class Product {
 
     Long cid
     Long cname
+
+
+    @Override
+    String toString() {
+        return """Product{pid=$pid, name='$name', desc='$desc', price=$price, url='$url', cid=$cid, cname=$cname}"""
+    }
 }
