@@ -27,11 +27,12 @@ class OrderEndpoint extends GroovyChainAction {
                     def status = request.queryParams.status
 
                     repository.find(name, status)
-                            .then { render Jackson.json(it) }
+                        .map(Jackson.&json)
+                        .then { render it }
 
                 }
                 post {
-                    parse(Jackson.fromJson(CreateOrderCommand)).flatMap { ocmd ->
+                    parse(Jackson.fromJson(CreateOrderCommand)).map { ocmd ->
                         List<OrderLine> lines = ocmd.lines.collect { lcmd ->
                             LineBody p = new LineBody(p: lcmd.purchase.p, t: lcmd.purchase.t, s: lcmd.purchase.s, d: lcmd.purchase.d)
                             LineBody s = new LineBody(p: lcmd.sell.p, t: lcmd.sell.t, s: lcmd.sell.s, d: lcmd.sell.d)
@@ -40,13 +41,12 @@ class OrderEndpoint extends GroovyChainAction {
 
                         }.asList()
 
-                        Order order = new Order(note: ocmd.note, status: Order.ORDER_STATUS_INQUIRE, lines: lines)
-                        order.settle()
-
-                        repository.create(order)
-                    }.then {
-                        render it
+                        Order o = new Order(note: ocmd.note, status: Order.ORDER_STATUS_INQUIRE, lines: lines)
+                        o.settle()
+                        o
                     }
+                    .flatMap { repository.create it}
+                    .then { render it }
                 }
             }
         }

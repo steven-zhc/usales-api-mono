@@ -12,6 +12,8 @@ class Order {
 
     Float total
     Float profit
+
+
     Date dateCreated = new Date()
     String note
 
