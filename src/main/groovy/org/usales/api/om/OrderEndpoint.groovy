@@ -82,11 +82,9 @@ class OrderEndpoint extends GroovyChainAction {
                             order.note = cmd.note ?: order.note
 
                             order.settle()
-
-                            repository.save(order)
-                        }.then {
-                            render it
                         }
+                        .map { repository.save(order) }
+                        .then { render order }
                     }
                 }
             }
@@ -140,7 +138,7 @@ class OrderEndpoint extends GroovyChainAction {
                                 render line
                             }
                             patch {
-                                parse(Jackson.fromJson(UpdateOrderLineCommand)).flatMap { cmd ->
+                                parse(Jackson.fromJson(UpdateOrderLineCommand)).map { cmd ->
 
                                     line.q = cmd.q ?: line.q
                                     line.note = cmd.note ?: line.note
@@ -164,16 +162,16 @@ class OrderEndpoint extends GroovyChainAction {
                                         s.d = cmd.sell.d ?: s.d
                                     }
 
-                                    repository.save(line)
-
-                                }.then {
-                                    render it
                                 }
-
+                                .flatMap { repository.save(line) }
+                                .onError { render new Message(status: 500, message: it.getMessage()) }
+                                .then { render line }
 
                             }
                             delete {
                                 repository.deleteOrderLine(order, line)
+                                .onError { render new Message(status: 500, message: it.getMessage()) }
+                                .then { render new Message(status: 200, message: "Deleted successful.")  }
                             }
                         }
                     }
